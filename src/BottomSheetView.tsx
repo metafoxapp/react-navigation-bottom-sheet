@@ -100,7 +100,7 @@ export function BottomSheetView({ state, descriptors }: Props) {
   return (
     <>
       <BottomSheetModalProvider>
-        {state.routes.slice(1).map((route) => {
+        {state.routes.map((route) => {
           const { options, navigation, render } = descriptors[route.key];
 
           const {
