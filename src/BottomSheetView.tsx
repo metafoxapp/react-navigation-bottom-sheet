@@ -2,9 +2,12 @@ import {
   BottomSheetModal,
   BottomSheetModalProps,
   BottomSheetModalProvider,
+  useBottomSheetDynamicSnapPoints,
 } from '@gorhom/bottom-sheet';
 import { ParamListBase, useTheme } from '@react-navigation/native';
 import * as React from 'react';
+import { createContext, useMemo } from 'react';
+import type { LayoutChangeEvent } from 'react-native';
 import type {
   BottomSheetDescriptorMap,
   BottomSheetNavigationConfig,
@@ -16,6 +19,11 @@ import type {
 type BottomSheetModalScreenProps = BottomSheetModalProps & {
   navigation: BottomSheetNavigationProp<ParamListBase>;
 };
+
+export const NavigationContextBottomsheet = createContext<{
+  handleContentLayout?: (event: LayoutChangeEvent) => void
+}>({})
+
 
 function BottomSheetModalScreen({
   navigation,
@@ -74,14 +82,10 @@ function BottomSheetModalScreen({
 
 const DEFAULT_SNAP_POINTS = ['66%'];
 
-type Props = BottomSheetNavigationConfig & {
-  state: BottomSheetNavigationState<ParamListBase>;
-  navigation: BottomSheetNavigationHelpers;
-  descriptors: BottomSheetDescriptorMap;
-};
+const BottomSheetRouterScreen = ({ descriptors, route }) => {
 
-export function BottomSheetView({ state, descriptors }: Props) {
   const { colors } = useTheme();
+  
   const themeBackgroundStyle = React.useMemo(
     () => ({
       backgroundColor: colors.card,
@@ -95,13 +99,16 @@ export function BottomSheetView({ state, descriptors }: Props) {
     [colors.border],
   );
 
-  // Avoid rendering provider if we only have one screen.
+  const initialSnapPoints = useMemo(() => ['CONTENT_HEIGHT'], []);
 
-  return (
-    <>
-      <BottomSheetModalProvider>
-        {state.routes.map((route) => {
-          const { options, navigation, render } = descriptors[route.key];
+    const {
+    animatedHandleHeight,
+    animatedSnapPoints,
+    animatedContentHeight,
+    handleContentLayout
+    } = useBottomSheetDynamicSnapPoints(initialSnapPoints);
+  
+  const { options, navigation, render } = descriptors[route.key];
 
           const {
             index,
@@ -120,7 +127,10 @@ export function BottomSheetView({ state, descriptors }: Props) {
                 route.snapToIndex ?? index ?? 0,
                 snapPoints.length - 1,
               )}
-              snapPoints={snapPoints}
+              // snapPoints={snapPoints}
+              snapPoints={animatedSnapPoints}
+              handleHeight={animatedHandleHeight}
+              contentHeight={animatedContentHeight}
               navigation={navigation}
               backgroundStyle={[themeBackgroundStyle, backgroundStyle]}
               handleIndicatorStyle={[
@@ -129,9 +139,31 @@ export function BottomSheetView({ state, descriptors }: Props) {
               ]}
               {...sheetProps}
             >
-              {render()}
+              <NavigationContextBottomsheet.Provider value={{handleContentLayout}}>
+                {render()}
+              </NavigationContextBottomsheet.Provider>
             </BottomSheetModalScreen>
           );
+}
+
+type Props = BottomSheetNavigationConfig & {
+  state: BottomSheetNavigationState<ParamListBase>;
+  navigation: BottomSheetNavigationHelpers;
+  descriptors: BottomSheetDescriptorMap;
+};
+
+export function BottomSheetView({ state, descriptors }: Props) {
+
+
+
+
+  // Avoid rendering provider if we only have one screen.
+
+  return (
+    <>
+      <BottomSheetModalProvider>
+        {state.routes.map((route) => {
+          return <BottomSheetRouterScreen route={route} descriptors={descriptors} />
         })}
       </BottomSheetModalProvider>
     </>

@@ -9,7 +9,7 @@ import {
   BottomSheetRouter,
   BottomSheetRouterOptions,
 } from './BottomSheetRouter';
-import { BottomSheetView } from './BottomSheetView';
+import { BottomSheetView, NavigationContextBottomsheet } from './BottomSheetView';
 import type {
   BottomSheetActionHelpers,
   BottomSheetNavigationEventMap,
@@ -51,9 +51,11 @@ function BottomSheetNavigator({
   );
 }
 
-export const createBottomSheetNavigator = createNavigatorFactory<
+
+ const createBottomSheetNavigator = createNavigatorFactory<
   StackNavigationState<ParamListBase>,
   BottomSheetNavigationOptions,
   BottomSheetNavigationEventMap,
   typeof BottomSheetNavigator
->(BottomSheetNavigator);
+   >(BottomSheetNavigator);
+export { createBottomSheetNavigator, NavigationContextBottomsheet}
