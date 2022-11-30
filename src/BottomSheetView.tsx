@@ -160,14 +160,16 @@ export function BottomSheetView({ state, descriptors }: Props) {
   // Avoid rendering provider if we only have one screen.
 
   return (
-    <>
-      <BottomSheetModalProvider>
-        {state.routes.map((route) => {
-          return (
-            <BottomSheetRouterScreen route={route} descriptors={descriptors} />
-          );
-        })}
-      </BottomSheetModalProvider>
-    </>
+    <BottomSheetModalProvider>
+      {state.routes.map((route) => {
+        return (
+          <BottomSheetRouterScreen
+            key={route.key}
+            route={route}
+            descriptors={descriptors}
+          />
+        );
+      })}
+    </BottomSheetModalProvider>
   );
 }
